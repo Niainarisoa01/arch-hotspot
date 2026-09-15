@@ -21,8 +21,7 @@ static APP_ICON_BYTES: &[u8] = include_bytes!("../assets/icon.png");
 
 #[derive(Clone, Debug)]
 pub enum AppMsg {
-    Start,
-    Stop,
+    TogglePower,
     Apply,
     ToggleShowPassword(bool),
     Tick(QuickTickStatus),
@@ -187,39 +186,28 @@ pub fn run_gui() -> Result<()> {
         s_pwd.send(AppMsg::ToggleShowPassword(btn.is_checked()));
     });
 
-    // 4. BOUTONS D'ACTIONS
+    // 4. BOUTONS D'ACTIONS (Bouton Unique Bascule Démarrer/Arrêter + Bouton Appliquer)
     let btn_y = 344;
     let btn_h = 42;
-    let btn_w = (win_w - 40 - 24) / 3;
+    let btn_toggle_w = 430;
+    let btn_gap = 16;
+    let btn_apply_w = (win_w - 40) - btn_toggle_w - btn_gap;
+    let btn_apply_x = 20 + btn_toggle_w + btn_gap;
 
-    // Bouton DÉMARRER (Vert Émeraude avec texte BLANC)
-    let mut btn_start = Button::new(20, btn_y, btn_w, btn_h, "▶  DÉMARRER LE PARTAGE");
-    btn_start.set_color(COLOR_EMERALD);
-    btn_start.set_label_color(COLOR_TEXT_WHITE);
-    btn_start.set_label_font(Font::HelveticaBold);
-    btn_start.set_label_size(13);
+    // BOUTON UNIQUE BASCULE (DÉMARRER / ARRÊTER)
+    let mut btn_toggle = Button::new(20, btn_y, btn_toggle_w, btn_h, "▶  DÉMARRER LE PARTAGE");
+    btn_toggle.set_color(COLOR_EMERALD);
+    btn_toggle.set_label_color(COLOR_TEXT_WHITE);
+    btn_toggle.set_label_font(Font::HelveticaBold);
+    btn_toggle.set_label_size(14);
 
-    let s_start = sender.clone();
-    btn_start.set_callback(move |_| {
-        s_start.send(AppMsg::Start);
+    let s_toggle = sender.clone();
+    btn_toggle.set_callback(move |_| {
+        s_toggle.send(AppMsg::TogglePower);
     });
 
-    // Bouton ARRÊTER (Rouge vif avec texte BLANC)
-    let btn_stop_x = 20 + btn_w + 12;
-    let mut btn_stop = Button::new(btn_stop_x, btn_y, btn_w, btn_h, "■  ARRÊTER LE PARTAGE");
-    btn_stop.set_color(COLOR_RED);
-    btn_stop.set_label_color(COLOR_TEXT_WHITE);
-    btn_stop.set_label_font(Font::HelveticaBold);
-    btn_stop.set_label_size(13);
-
-    let s_stop = sender.clone();
-    btn_stop.set_callback(move |_| {
-        s_stop.send(AppMsg::Stop);
-    });
-
-    // Bouton APPLIQUER (Bleu vif avec texte BLANC)
-    let btn_apply_x = btn_stop_x + btn_w + 12;
-    let mut btn_apply = Button::new(btn_apply_x, btn_y, btn_w, btn_h, "💾  APPLIQUER MODIFICATIONS");
+    // Bouton APPLIQUER MODIFICATIONS
+    let mut btn_apply = Button::new(btn_apply_x, btn_y, btn_apply_w, btn_h, "💾  APPLIQUER MODIFICATIONS");
     btn_apply.set_color(COLOR_BLUE_BTN);
     btn_apply.set_label_color(COLOR_TEXT_WHITE);
     btn_apply.set_label_font(Font::HelveticaBold);
@@ -288,11 +276,15 @@ pub fn run_gui() -> Result<()> {
         status_badge.set_label("● HOTSPOT ACTIF");
         status_badge.set_label_color(COLOR_EMERALD_TEXT);
         c2_val.set_label(&network::get_gateway_ip(&wifi_iface));
+        btn_toggle.set_label("■  ARRÊTER LE PARTAGE");
+        btn_toggle.set_color(COLOR_RED);
         add_log(&mut log_browser, "Point d'accès Wi-Fi actuellement ACTIF.");
     } else {
         status_badge.set_label("○ HOTSPOT INACTIF");
         status_badge.set_label_color(COLOR_RED_TEXT);
         c2_val.set_label("--");
+        btn_toggle.set_label("▶  DÉMARRER LE PARTAGE");
+        btn_toggle.set_color(COLOR_EMERALD);
         add_log(&mut log_browser, "Point d'accès Wi-Fi actuellement INACTIF.");
     }
 
@@ -319,43 +311,50 @@ pub fn run_gui() -> Result<()> {
             let mut need_redraw = false;
 
             match msg {
-                AppMsg::Start => {
-                    let ssid = ssid_input.value().trim().to_string();
-                    let pwd = pwd_input.value().trim().to_string();
-                    let iface = c1_val.label();
+                AppMsg::TogglePower => {
+                    let currently_active = last_active.unwrap_or(false);
+                    if currently_active {
+                        // Action d'arrêt
+                        add_log(&mut log_browser, "Arrêt du hotspot en cours...");
+                        match network::stop_hotspot() {
+                            Ok(res) => {
+                                add_log(&mut log_browser, &res);
+                                status_badge.set_label("○ HOTSPOT INACTIF");
+                                status_badge.set_label_color(COLOR_RED_TEXT);
+                                c2_val.set_label("--");
+                                c3_val.set_label("0");
+                                btn_toggle.set_label("▶  DÉMARRER LE PARTAGE");
+                                btn_toggle.set_color(COLOR_EMERALD);
+                                client_browser.clear();
+                                client_browser.add("@b@f@C223  ADRESSE IP\t@b@f@C223ADRESSE MAC\t@b@f@C223ÉTAT");
+                                client_browser.add("@f@C255  ○ Le point d'accès est inactif.");
+                                last_active = Some(false);
+                                last_clients.clear();
+                            }
+                            Err(e) => {
+                                add_log(&mut log_browser, &format!("Erreur: {}", e));
+                            }
+                        }
+                    } else {
+                        // Action de démarrage
+                        let ssid = ssid_input.value().trim().to_string();
+                        let pwd = pwd_input.value().trim().to_string();
+                        let iface = c1_val.label();
 
-                    add_log(&mut log_browser, &format!("Démarrage du hotspot (SSID: '{}')...", ssid));
-                    match network::start_hotspot(&ssid, &pwd, &iface) {
-                        Ok(res) => {
-                            add_log(&mut log_browser, &res);
-                            status_badge.set_label("● HOTSPOT ACTIF");
-                            status_badge.set_label_color(COLOR_EMERALD_TEXT);
-                            c2_val.set_label(&network::get_gateway_ip(&iface));
-                            last_active = Some(true);
-                        }
-                        Err(e) => {
-                            add_log(&mut log_browser, &format!("Erreur: {}", e));
-                        }
-                    }
-                    need_redraw = true;
-                }
-                AppMsg::Stop => {
-                    add_log(&mut log_browser, "Arrêt du hotspot en cours...");
-                    match network::stop_hotspot() {
-                        Ok(res) => {
-                            add_log(&mut log_browser, &res);
-                            status_badge.set_label("○ HOTSPOT INACTIF");
-                            status_badge.set_label_color(COLOR_RED_TEXT);
-                            c2_val.set_label("--");
-                            c3_val.set_label("0");
-                            client_browser.clear();
-                            client_browser.add("@b@f@C223  ADRESSE IP\t@b@f@C223ADRESSE MAC\t@b@f@C223ÉTAT");
-                            client_browser.add("@f@C255  ○ Le point d'accès est inactif.");
-                            last_active = Some(false);
-                            last_clients.clear();
-                        }
-                        Err(e) => {
-                            add_log(&mut log_browser, &format!("Erreur: {}", e));
+                        add_log(&mut log_browser, &format!("Démarrage du hotspot (SSID: '{}')...", ssid));
+                        match network::start_hotspot(&ssid, &pwd, &iface) {
+                            Ok(res) => {
+                                add_log(&mut log_browser, &res);
+                                status_badge.set_label("● HOTSPOT ACTIF");
+                                status_badge.set_label_color(COLOR_EMERALD_TEXT);
+                                c2_val.set_label(&network::get_gateway_ip(&iface));
+                                btn_toggle.set_label("■  ARRÊTER LE PARTAGE");
+                                btn_toggle.set_color(COLOR_RED);
+                                last_active = Some(true);
+                            }
+                            Err(e) => {
+                                add_log(&mut log_browser, &format!("Erreur: {}", e));
+                            }
                         }
                     }
                     need_redraw = true;
@@ -390,10 +389,14 @@ pub fn run_gui() -> Result<()> {
                             status_badge.set_label("● HOTSPOT ACTIF");
                             status_badge.set_label_color(COLOR_EMERALD_TEXT);
                             c2_val.set_label("10.42.0.1");
+                            btn_toggle.set_label("■  ARRÊTER LE PARTAGE");
+                            btn_toggle.set_color(COLOR_RED);
                         } else {
                             status_badge.set_label("○ HOTSPOT INACTIF");
                             status_badge.set_label_color(COLOR_RED_TEXT);
                             c2_val.set_label("--");
+                            btn_toggle.set_label("▶  DÉMARRER LE PARTAGE");
+                            btn_toggle.set_color(COLOR_EMERALD);
                         }
                         need_redraw = true;
                     }
