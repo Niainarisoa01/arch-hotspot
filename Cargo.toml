@@ -1,0 +1,18 @@
+[package]
+name = "arch-hotspot-gui"
+version = "0.1.0"
+edition = "2021"
+authors = ["Niaina"]
+description = "Une application desktop moderne et légère en Rust pour gérer le partage de connexion (Hotspot Wi-Fi) sous Arch Linux"
+
+[dependencies]
+fltk = { version = "1.5", features = ["fltk-bundled"] }
+anyhow = "1.0"
+
+[profile.release]
+opt-level = "z"          # Optimisation maximale pour la taille et le cache mémoire
+lto = "fat"              # Link Time Optimization global
+codegen-units = 1        # Inlining et déduplication maximale de code
+panic = "abort"          # Suppression complète des tables de unwinding
+strip = true             # Suppression des symboles et données de débogage
+
