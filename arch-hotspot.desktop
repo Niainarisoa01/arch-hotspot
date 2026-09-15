@@ -2,11 +2,10 @@
 Name=Arch Hotspot Wi-Fi
 GenericName=Partage de Connexion
 Comment=Gestionnaire de Point d'accès Wi-Fi et surveillance des clients (Hotspot)
-Exec=/home/niaina/partage/arch-hotspot-gui/target/release/arch-hotspot-gui
-Path=/home/niaina/partage/arch-hotspot-gui
-Icon=/home/niaina/partage/arch-hotspot-gui/assets/icon.png
+Exec=arch-hotspot-gui
+Icon=arch-hotspot
 Terminal=false
 Type=Application
 Categories=Network;System;
-Keywords=wifi;hotspot;partage;connexion;niaina;arch;
+Keywords=wifi;hotspot;partage;connexion;arch;
 StartupNotify=true

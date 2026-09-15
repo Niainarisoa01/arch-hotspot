@@ -26,21 +26,21 @@ Une application de bureau native, légère et moderne en **Rust** (FLTK) pour g�
 
 ---
 
-## Lancement rapide
+## Installation & Lancement rapide
 
-### 1. Via le script dédié :
+### 1. Cloner le dépôt :
 ```bash
-/home/niaina/.gemini/antigravity-ide/scratch/arch-hotspot-gui/run.sh
+git clone https://github.com/Niainarisoa01/arch-hotspot.git
+cd arch-hotspot
 ```
 
-### 2. Directement via le binaire compilé :
+### 2. Lancement immédiat :
 ```bash
-/home/niaina/.gemini/antigravity-ide/scratch/arch-hotspot-gui/target/release/arch-hotspot-gui
+./run.sh
 ```
 
-### 3. Via Cargo :
+### 3. Compilation et exécution via Cargo :
 ```bash
-cd /home/niaina/.gemini/antigravity-ide/scratch/arch-hotspot-gui
 cargo run --release
 ```
 
@@ -52,3 +52,5 @@ cargo run --release
 * `src/gui.rs` : Interface utilisateur moderne FLTK, gestion des événements asynchrones et timers de rafraîchissement.
 * `src/network.rs` : Interaction avec NetworkManager (`nmcli`) et détection des voisins réseau (`ip neigh`).
 * `src/theme.rs` : Palette de couleurs Dark Mode industrielle.
+* `assets/` : Icônes et logos de l'application (SVG et PNG).
+* `arch-hotspot.desktop` : Fichier d'intégration pour le menu des applications de bureau Linux.
