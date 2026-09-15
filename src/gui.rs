@@ -189,29 +189,28 @@ pub fn run_gui() -> Result<()> {
     // 4. BOUTONS D'ACTIONS (Bouton Unique Bascule Démarrer/Arrêter + Bouton Appliquer)
     let btn_y = 344;
     let btn_h = 42;
-    let btn_toggle_w = 430;
     let btn_gap = 16;
-    let btn_apply_w = (win_w - 40) - btn_toggle_w - btn_gap;
-    let btn_apply_x = 20 + btn_toggle_w + btn_gap;
+    let btn_w = (win_w - 40 - btn_gap) / 2; // Largeur parfaitement équilibrée (352 px)
+    let btn_apply_x = 20 + btn_w + btn_gap;
 
     // BOUTON UNIQUE BASCULE (DÉMARRER / ARRÊTER)
-    let mut btn_toggle = Button::new(20, btn_y, btn_toggle_w, btn_h, "▶  DÉMARRER LE PARTAGE");
+    let mut btn_toggle = Button::new(20, btn_y, btn_w, btn_h, "▶  DÉMARRER LE PARTAGE");
     btn_toggle.set_color(COLOR_EMERALD);
     btn_toggle.set_label_color(COLOR_TEXT_WHITE);
     btn_toggle.set_label_font(Font::HelveticaBold);
-    btn_toggle.set_label_size(14);
+    btn_toggle.set_label_size(13);
 
     let s_toggle = sender.clone();
     btn_toggle.set_callback(move |_| {
         s_toggle.send(AppMsg::TogglePower);
     });
 
-    // Bouton APPLIQUER MODIFICATIONS
-    let mut btn_apply = Button::new(btn_apply_x, btn_y, btn_apply_w, btn_h, "💾  APPLIQUER MODIFICATIONS");
+    // Bouton APPLIQUER MODIFICATIONS (Même largeur équilibrée)
+    let mut btn_apply = Button::new(btn_apply_x, btn_y, btn_w, btn_h, "💾  APPLIQUER MODIFICATIONS");
     btn_apply.set_color(COLOR_BLUE_BTN);
     btn_apply.set_label_color(COLOR_TEXT_WHITE);
     btn_apply.set_label_font(Font::HelveticaBold);
-    btn_apply.set_label_size(12);
+    btn_apply.set_label_size(13);
 
     let s_apply = sender.clone();
     btn_apply.set_callback(move |_| {

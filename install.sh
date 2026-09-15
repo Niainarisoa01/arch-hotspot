@@ -14,8 +14,8 @@ fi
 mkdir -p "$BIN_DIR"
 mkdir -p "$HOME/.local/bin"
 echo "==> Installation du binaire dans $BIN_DIR..."
-cp "$DIR/target/release/arch-hotspot-gui" "$BIN_DIR/arch-hotspot-gui"
-cp "$DIR/target/release/arch-hotspot-gui" "$HOME/.local/bin/arch-hotspot-gui" 2>/dev/null || true
+install -m 755 "$DIR/target/release/arch-hotspot-gui" "$BIN_DIR/arch-hotspot-gui"
+install -m 755 "$DIR/target/release/arch-hotspot-gui" "$HOME/.local/bin/arch-hotspot-gui" 2>/dev/null || true
 chmod +x "$BIN_DIR/arch-hotspot-gui"
 
 echo "==> Installation de l'icône dans ~/.local/share/icons/..."
