@@ -8,6 +8,7 @@ description = "Une application desktop moderne et légère en Rust pour gérer l
 [dependencies]
 fltk = { version = "1.5", features = ["fltk-bundled"] }
 anyhow = "1.0"
+qrcode = { version = "0.14.1", default-features = false }
 
 [profile.release]
 opt-level = "z"          # Optimisation maximale pour la taille et le cache mémoire

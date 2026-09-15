@@ -1,5 +1,6 @@
 mod gui;
 mod network;
+mod qr;
 mod theme;
 
 use anyhow::Result;

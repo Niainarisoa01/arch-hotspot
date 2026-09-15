@@ -24,6 +24,7 @@ pub enum AppMsg {
     TogglePower,
     Apply,
     ToggleShowPassword(bool),
+    ShowQr,
     Tick(QuickTickStatus),
     #[allow(dead_code)]
     Log(String),
@@ -158,6 +159,19 @@ pub fn run_gui() -> Result<()> {
     ssid_input.set_text_font(Font::HelveticaBold);
     ssid_input.set_text_size(14);
     ssid_input.set_value("Niaina");
+
+    // Bouton QR Code Wi-Fi pour scan mobile instantané
+    let mut btn_qr = Button::new(36, cfg_y + 108, 220, 28, "📱  QR CODE WI-FI (SCAN)");
+    btn_qr.set_color(COLOR_CARD);
+    btn_qr.set_label_color(COLOR_TEXT_ACCENT);
+    btn_qr.set_label_font(Font::HelveticaBold);
+    btn_qr.set_label_size(11);
+    btn_qr.set_tooltip("Afficher le QR Code pour connecter un smartphone");
+
+    let s_qr = sender.clone();
+    btn_qr.set_callback(move |_| {
+        s_qr.send(AppMsg::ShowQr);
+    });
 
     // Champ Mot de passe
     let pwd_x = 380;
@@ -380,6 +394,13 @@ pub fn run_gui() -> Result<()> {
                         pwd_input.set_type(fltk::input::InputType::Normal);
                     }
                     pwd_input.redraw();
+                }
+                AppMsg::ShowQr => {
+                    let ssid = ssid_input.value().trim().to_string();
+                    let pwd = pwd_input.value().trim().to_string();
+                    add_log(&mut log_browser, "Affichage du QR Code Wi-Fi pour scan smartphone...");
+                    crate::qr::show_qr_modal(&ssid, &pwd);
+                    need_redraw = true;
                 }
                 AppMsg::Tick(status) => {
                     if last_active != Some(status.is_active) {
