@@ -182,6 +182,7 @@ pub fn run_gui() -> Result<()> {
     pwd_lbl.set_align(Align::Left | Align::Inside);
 
     let mut pwd_input = Input::new(pwd_x, cfg_y + 64, 324, 36, None);
+    pwd_input.set_type(fltk::input::InputType::Secret);
     pwd_input.set_color(COLOR_INPUT);
     pwd_input.set_text_color(COLOR_TEXT_WHITE);
     pwd_input.set_cursor_color(COLOR_TEXT_ACCENT);
@@ -190,7 +191,7 @@ pub fn run_gui() -> Result<()> {
     pwd_input.set_value("12345678");
 
     // Checkbox afficher mot de passe
-    let mut chk_show_pwd = CheckButton::new(pwd_x, cfg_y + 110, 220, 24, "Masquer le mot de passe");
+    let mut chk_show_pwd = CheckButton::new(pwd_x, cfg_y + 110, 220, 24, "Afficher le mot de passe");
     chk_show_pwd.set_label_color(COLOR_TEXT_MAIN);
     chk_show_pwd.set_label_size(12);
     chk_show_pwd.set_checked(false);
@@ -387,11 +388,11 @@ pub fn run_gui() -> Result<()> {
                     }
                     need_redraw = true;
                 }
-                AppMsg::ToggleShowPassword(hide) => {
-                    if hide {
-                        pwd_input.set_type(fltk::input::InputType::Secret);
-                    } else {
+                AppMsg::ToggleShowPassword(show) => {
+                    if show {
                         pwd_input.set_type(fltk::input::InputType::Normal);
+                    } else {
+                        pwd_input.set_type(fltk::input::InputType::Secret);
                     }
                     pwd_input.redraw();
                 }
